@@ -42,6 +42,18 @@
     - DBPassword : DB 密碼
     - EC2SecurityGroup : 允許存取的 Security Group，這裡指定上一步驟 EC2 建立的 Security Group，讓 DB 允許 EC2 連入
     
+    **佈署 ElasticCache Redis**
+    
+    ```
+    aws cloudformation deploy --template-file cache-redis-template.yml --stack-name cf-redis-sample --profile <Your profile name> --parameter-overrides EC2SecurityGroup=ec2-access-test
+    ```
+   
+    - template-file : 執行佈署的 template 檔案
+    - stack-name : cloudformation stack 名稱
+    - profile : AWS credentials 的 profile name
+    - EC2SecurityGroup : 允許存取的 Security Group，這裡指定上一步驟 EC2 建立的 Security Group，讓 Redis 允許 EC2 連入
+   
+    
 
 4. 建立完成
     
@@ -59,6 +71,13 @@
     yum install mysql
     mysql -h <DB endpoint> -u <DB 使用者> -p<DB 密碼>
     ```
+   
+    - EC2 連線到 Redis
+        - 安裝 redis-cli
+        - 進入 redis
+        ```
+        redis-cli -h <Redis endpoint> -p 6379
+        ```
 
 5. 刪除 stack
 
@@ -67,6 +86,7 @@
     ```
     aws cloudformation delete-stack --stack-name cf-aurora-sample --profile <Your profile name>
     aws cloudformation delete-stack --stack-name cf-mysql-sample --profile <Your profile name>
+    aws cloudformation delete-stack --stack-name cf-redis-sample  --profile <Your profile name>
     aws cloudformation delete-stack --stack-name cf-ec2-sample  --profile <Your profile name>
     ```
 

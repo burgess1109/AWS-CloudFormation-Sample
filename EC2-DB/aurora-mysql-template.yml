@@ -43,7 +43,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: '3306'
           ToPort: '3306'
-          # CidrIp: 60.251.45.137/32
+          # CidrIp: 0.0.0.0/0
           SourceSecurityGroupName: !Ref EC2SecurityGroup
   DBCluster:
     Type: 'AWS::RDS::DBCluster'

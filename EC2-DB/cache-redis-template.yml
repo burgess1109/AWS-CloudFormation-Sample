@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "ElastiCache-Redis-Sample"
+Parameters:
+  EC2SecurityGroup:
+    Description: The EC2 security group that contains instances that need access to the database
+    Default: default
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9\-]+'
+    ConstraintDescription: must be a valid security group name.
+Resources:
+  ElastiCacheSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: cache-redis-access-test
+      GroupDescription: Open redis for access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '6379'
+          ToPort: '6379'
+          SourceSecurityGroupName: !Ref EC2SecurityGroup
+  ElastiCacheCluster:
+    Type: 'AWS::ElastiCache::CacheCluster'
+    Properties:
+      ClusterName: REDIS-Cluster-Test
+      Engine: redis
+      CacheNodeType: cache.t2.micro
+      NumCacheNodes: '1'
+      SnapshotRetentionLimit: 5
+      VpcSecurityGroupIds:
+        - !GetAtt ElastiCacheSecurityGroup.GroupId
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created ElastiCache cluster instance
+    Value: !Ref ElastiCacheCluster
+  ElastiCacheConnectionString:
+    Description: connection string for the cache cluster
+    Value: !Join
+      - ''
+      - - 'redis://'
+        - !GetAtt
+          - ElastiCacheCluster
+          - RedisEndpoint.Address
+        - ':'
+        - !GetAtt
+          - ElastiCacheCluster
+          - RedisEndpoint.Port
+        - /
+        - 0
