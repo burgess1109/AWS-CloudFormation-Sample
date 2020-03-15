@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Aurora-Cluster-Sample"
+Description: 'Aurora-Cluster-Sample'
 Parameters:
   DBName:
     Default: TestProject

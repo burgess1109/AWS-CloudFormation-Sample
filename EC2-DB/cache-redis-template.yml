@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "ElastiCache-Redis-Sample"
+Description: 'ElastiCache-Redis-Sample'
 Parameters:
   EC2SecurityGroup:
     Description: The EC2 security group that contains instances that need access to the database

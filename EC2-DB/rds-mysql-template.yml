@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "RDS-MySQL-Sample"
+Description: 'RDS-MySQL-Sample'
 Parameters:
   DBName:
     Default: TestProject
