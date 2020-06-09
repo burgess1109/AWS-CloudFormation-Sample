@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "AWS SES ConfigurationSet Sample Template"
+Parameters:
+  ConfigSetName:
+    Type: String
+    Default: TestSES
+  EventDestinationName:
+    Type: String
+    Default: CloudWatchEvent
+Resources:
+  ConfigSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: !Ref ConfigSetName
+  CWEventDestination:
+    Type: AWS::SES::ConfigurationSetEventDestination
+    Properties:
+      ConfigurationSetName: !Ref ConfigSet
+      EventDestination:
+        Name: !Ref EventDestinationName
+        Enabled: true
+        MatchingEventTypes:
+          - click
+          - bounce
+          - send
+          - open
+          - complaint
+          - delivery
+          - renderingSuccess
+          - renderingFailure
+          - reject
+        CloudWatchDestination:
+          DimensionConfigurations:
+            - DimensionValueSource: messageTag
+              DimensionName: SESSample
+              DefaultDimensionValue: EventType
+
+  Template:
+    Type: AWS::SES::Template
+    Properties:
+      Template:
+        TemplateName: TestMail
+        SubjectPart: "AWS SES 測試信"
+        TextPart: "Hi {{name}}：這是一封測試信！"
+        HtmlPart:
+          !Join
+          - ""
+          - - "Hi, {{name}}：<br>"
+            - "這是一封測試信！"
