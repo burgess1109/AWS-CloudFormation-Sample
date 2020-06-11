@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Lambda Cron Job Sample"
+Parameters:
+  Frequency:
+    Type: String
+    Default: "cron(0/5 2-12 * * ? *)"
+    Description: "cloudWatch 觸發 Lambda 的頻率, format : cron(Minutes Hours Day-of-month Month Day-of-week Year)"
+  LambdaBucketName:
+    Type: "String"
+    Default: "sample-lambda-s3"
+    Description: "放置 lambda code zip 檔的 S3 Bucket"
+  CronJobLambdaFile:
+    Type: "String"
+    Description: "lambda code"
+    Default: "lambda01.zip"
+
+Resources:
+  #CronJob as EventRule to invoke Lambda Function
+  CronJobEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: CloudWatch Event that triggers Lambda Function
+      ScheduleExpression: !Ref Frequency
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt [CronJobLambdaFunction, Arn]
+          Id: LambdaCronjob
+
+  #Permission to CronJobEvent invoke the Lambda Function
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CronJobLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [CronJobEvent, Arn]
+
+  CronJobLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs12.x
+      Role: !GetAtt [LambdaExecutionRole, Arn]
+      Handler: index.handler
+      Code:
+        S3Bucket: !Ref LambdaBucketName
+        S3Key: !Ref CronJobLambdaFile
+      Description: Invoke a function during stack creating.
+      Timeout: 600
+      Environment:
+        Variables:
+          Key: Value
+          Region: ap-northeast-1
+          LambdaBucketName: !Ref LambdaBucketName
+          CronJobLambdaFile: !Ref CronJobLambdaFile
+
+  #LambdaRole
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: CWLogsPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "logs:DescribeLogStreams"
+                Resource: "arn:aws:logs:*:*:*"
+                Effect: Allow
+        - PolicyName: S3Permissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "s3:GetObject"
+                Resource:
+                  - Fn::Join: [ "", [ "arn:aws:s3:::", !Ref LambdaBucketName ,"/*" ] ]
+                  - Fn::Join: [ "", [ "arn:aws:s3:::", !Ref LambdaBucketName ] ]
+                Effect: "Allow"
+        - PolicyName: DynamoDBPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "dynamodb:ListTables"
+                Resource: "arn:aws:dynamodb:ap-northeast-1:*:table/*"
+                Effect: Allow

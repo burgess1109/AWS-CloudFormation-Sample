@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Store lambda zip file"
+Parameters:
+  LambdaBucketName:
+    Type: "String"
+    Default: "sample-lambda-s3"
+    Description: "放置 lambda code zip 檔的 S3 Bucket"
+
+Resources:
+  LambdaBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref LambdaBucketName
+
