@@ -14,7 +14,7 @@
     ```
     - Lambda zip file name : 打包上傳的 lambda .zip 檔名(EX: lambda01.zip)
    
-3. 部署 Lambda
+- 部署 Lambda
     ```
     aws cloudformation deploy --template-file lambda.yml --stack-name cf-sample-lambda --capabilities CAPABILITY_NAMED_IAM --parameter-overrides Frequency=<Cron Job Frequency> LambdaBucketName=<Your Bucket Name> CronJobLambdaFile=<Lambda zip file name>
     ```
@@ -22,13 +22,11 @@
     - Frequency : cron jon 頻率，請參考[Schedule expressions using rate or cron](https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents-expressions.html)
     - CronJobLambdaFile : 步驟二打包上傳的 lambda zip 檔名
 
-4. 查看 cloudWatch
+- 查看 cloudWatch
    - 至 console 介面查看 `/aws/lambda/cf-lambda-sample-CronJobLambdaFunction-XXXXXXX` 的日誌群組，可查到每五分鐘 lambda 執行所留下的 log
 
-5. 刪除 stack
-
+- 刪除 stack
     刪除 stack 會把之前透過 CloudFormation 佈署的所有服務也移除。
-    
     ```
     aws cloudformation delete-stack --stack-name cf-sample-lambda
     aws cloudformation delete-stack --stack-name cf-sample-s3
