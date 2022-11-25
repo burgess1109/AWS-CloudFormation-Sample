@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CF-Sample-Amazon-RDS'
+Parameters:
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+  DBInstanceIdentifier:
+    Default: cf-sample-maria
+    Type: String
+  DBName:
+    Default: sample
+    Description: The database name
+    Type: String
+  DBUser:
+    Default: test
+    Description: The database admin account username
+    Type: String
+  DBPassword:
+    Description: The database admin account password
+    Type: String
+  EngineVersion:
+    Type: Number
+    Default: 10.6
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+  AllocatedStorage:
+    Type: Number
+    Default: 20
+    Description: 20G ~ 16384G for DB
+  SubnetGroupName:
+    Type: String
+    Default: mariadb-subnet-group
+  SGStackName:
+    Type: String
+    Default: cf-sample-sg
+Resources:
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      Engine: mariadb
+      EngineVersion: !Ref EngineVersion
+      DBInstanceClass: !Ref DBInstanceClass
+      StorageType: gp2
+      AllocatedStorage: !Ref AllocatedStorage
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref SubnetGroup
+      PubliclyAccessible: true
+      DBParameterGroupName: !Ref MariaDB102
+      EnableCloudwatchLogsExports:
+        - error
+        - slowquery
+      VPCSecurityGroups:
+        - Fn::ImportValue:
+            !Sub "${SGStackName}-SqlDBSecurityGroupId"
+      BackupRetentionPeriod: 5
+      PreferredBackupWindow: "14:30-15:30"
+      PreferredMaintenanceWindow: "mon:02:00-mon:03:00"
+  MariaDB102:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Parameter group for mariadb10.2
+      Family: mariadb10.2
+      Parameters:
+        max_allowed_packet: 536870912
+        slow_query_log: ON
+        long_query_time: 10
+        log_output: FILE
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Ref SubnetGroupName
+      DBSubnetGroupDescription: CF Sample DB Subnet Group
+      SubnetIds:
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet01"
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet02"

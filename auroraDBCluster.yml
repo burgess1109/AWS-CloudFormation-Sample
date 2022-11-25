@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CF-Sample-Amazon-Aurora'
+Parameters:
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+  DBClusterIdentifier:
+    Default: cf-sample-aurora-mysql
+    Type: String
+  DBName:
+    Default: sample
+    Description: The database name
+    Type: String
+  DBUser:
+    Default: cf_sample
+    Description: The database admin account username
+    Type: String
+  DBPassword:
+    Description: The database admin account password
+    Type: String
+  EngineVersion:
+    Type: String
+    Default: 8.0.mysql_aurora.3.01.0
+  PrimaryDBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+  ReplicaDBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+  SubnetGroupName:
+    Type: String
+    Default: db-cluster-subnet-group
+  DBMaxAllowedPacket:
+    Type: Number
+    Default: 536870912
+  DBThreadCacheSize:
+    Type: Number
+    Default: 25
+  DBThreadStack:
+    Type: Number
+    Default: 262144
+  SGStackName:
+    Type: String
+    Default: cf-sample-sg
+Resources:
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Ref DBClusterIdentifier
+      DatabaseName: !Ref DBName
+      Engine: aurora-mysql
+      EngineVersion: !Ref EngineVersion
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref SubnetGroup
+      VpcSecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "${SGStackName}-SqlDBSecurityGroupId"
+      EnableCloudwatchLogsExports:
+        - error
+        - slowquery
+      BackupRetentionPeriod: 5
+      PreferredBackupWindow: "00:30-01:30"
+      PreferredMaintenanceWindow: "mon:02:00-mon:03:00"
+  DBInstance01:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Join [ "-", [ !Ref DBCluster, 'DB01' ] ]
+      DBInstanceClass: !Ref PrimaryDBInstanceClass
+      DBParameterGroupName: !Ref Aurora3ParameterGroup
+      DBSubnetGroupName: !Ref SubnetGroup
+      Engine: aurora-mysql
+      PubliclyAccessible: true
+  DBInstance02:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Join [ "-", [ !Ref DBCluster, 'DB02' ] ]
+      DBInstanceClass: !Ref ReplicaDBInstanceClass
+      DBParameterGroupName: !Ref Aurora3ParameterGroup
+      DBSubnetGroupName: !Ref SubnetGroup
+      Engine: aurora-mysql
+      PubliclyAccessible: true
+  Aurora3ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Parameter group for DB Instance
+      Family: aurora-mysql8.0
+      Parameters:
+        max_allowed_packet: !Ref DBMaxAllowedPacket
+        thread_cache_size: !Ref DBThreadCacheSize
+        thread_stack: !Ref DBThreadStack
+        slow_query_log: ON
+        long_query_time: 2
+        log_output: FILE
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Ref SubnetGroupName
+      DBSubnetGroupDescription: CF Sample DB Subnet Group
+      SubnetIds:
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet01"
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet02"

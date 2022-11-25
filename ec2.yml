@@ -1,0 +1,32 @@
+Description: 'CF-SAMPLE-EC2'
+Parameters:
+  KeyName:
+    Type: String
+    Default: cf-sample
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+  SGStackName:
+    Type: String
+    Default: cf-sample-sg
+  ImageId:
+    Type: String
+    Description: Amazon Linux kernel 5.10 x86_64 hvm ebs at ap-northeast-1 is ami-02c3627b04781eada
+    Default: ami-02c3627b04781eada
+
+Resources:
+  EC2SSHTunnel:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SubnetId:
+        Fn::ImportValue:
+          !Sub "${VPCStackName}-PublicSubnet01"
+      SecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "${SGStackName}-SSHSecurityGroupId"
+      Tags:
+        - Key: Name
+          Value: CF-Sample-SSH-Tunnel

@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CF-Sample-ElastiCache-Redis'
+Parameters:
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+  CacheNodeType:
+    Type: String
+    Default: cache.t3.micro
+  ClusterName:
+    Type: String
+    Default: cf-sample-redis
+  SubnetGroupName:
+    Type: String
+    Default: redis-subnet-group
+  SGStackName:
+    Type: String
+    Default: cf-sample-sg
+Resources:
+  CacheCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      ClusterName: !Ref ClusterName
+      AutoMinorVersionUpgrade: true
+      Engine: redis
+      CacheNodeType: !Ref CacheNodeType
+      NumCacheNodes: 1
+      CacheSubnetGroupName: !Ref SubnetGroup
+      VpcSecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "${SGStackName}-RedisSecurityGroupId"
+  SubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      CacheSubnetGroupName: !Ref SubnetGroupName
+      Description: CF Sample Redis Subnet Group
+      SubnetIds:
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PrivateSubnet01"
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PrivateSubnet02"

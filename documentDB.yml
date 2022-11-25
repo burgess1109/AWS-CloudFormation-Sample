@@ -1,0 +1,75 @@
+Description: 'CF-Sample-DocumentDB'
+Parameters:
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+  DBClusterName:
+    Default: cf-sample-docDB
+    Type: String
+  DBInstanceName:
+    Default: cf-sample-docDB-instance
+    Type: String
+  MasterUser:
+    NoEcho: true
+    Default: cf_sample
+    Type: String
+  MasterPassword:
+    NoEcho: true
+    Type: String
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.medium
+  SubnetGroupName:
+    Type: String
+    Default: db-cluster-subnet-group
+  SGStackName:
+    Type: String
+    Default: cf-sample-sg
+
+Resources:
+  DBCluster:
+    Type: AWS::DocDB::DBCluster
+    DeletionPolicy: Delete
+    Properties:
+      DBClusterIdentifier: !Ref DBClusterName
+      MasterUsername: !Ref MasterUser
+      MasterUserPassword: !Ref MasterPassword
+      EngineVersion: 4.0.0
+      DBSubnetGroupName: !Ref SubnetGroup
+      DBClusterParameterGroupName: !Ref DBParameterGroup
+      VpcSecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "${SGStackName}-DocDBSecurityGroupId"
+      PreferredBackupWindow: "00:30-01:30"
+      PreferredMaintenanceWindow: "mon:02:00-mon:03:00"
+      EnableCloudwatchLogsExports:
+        - audit
+        - profiler
+  DBInstance:
+    Type: AWS::DocDB::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Ref DBInstanceName
+      DBInstanceClass: !Ref DBInstanceClass
+    DependsOn: DBCluster
+  DBParameterGroup:
+    Type: AWS::DocDB::DBClusterParameterGroup
+    Properties:
+      Family: "docdb4.0"
+      Name: !Ref DBClusterName
+      Description: Parameter group for cf-sample
+      Parameters:
+        tls: disabled
+        audit_logs: enabled
+        profiler: enabled
+        profiler_threshold_ms: 1000
+  SubnetGroup:
+    Type: AWS::DocDB::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Ref SubnetGroupName
+      DBSubnetGroupDescription: CF Sample DB Subnet Group
+      SubnetIds:
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet01"
+        - Fn::ImportValue:
+            !Sub "${VPCStackName}-PublicSubnet02"

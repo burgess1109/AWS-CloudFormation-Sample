@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'DynamoDB-Sample'
+Description: 'CF-Sample-DynamoDB'
 Parameters:
   TableName:
     Default: Album

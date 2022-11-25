@@ -1,0 +1,87 @@
+Description: 'CF-Sample-SGs'
+Parameters:
+  VPCStackName:
+    Type: String
+    Default: cf-sample-vpc
+Resources:
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Sample-SSH-SG
+      GroupDescription: CF Sample Security Group for ssh
+      VpcId:
+        Fn::ImportValue: !Sub "${VPCStackName}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.1.0.0/16
+      Tags:
+        - Key: Name
+          Value: Sample-SSH-SG
+  SqlDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Sample-SqlDB-SG
+      GroupDescription: The Security Group for sql DB
+      VpcId:
+        Fn::ImportValue: !Sub "${VPCStackName}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.1.0.0/16
+      Tags:
+        - Key: Name
+          Value: Sample-SqlDB-SG
+  RedisSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Sample-Redis-SG
+      GroupDescription: The Security Group for redis
+      VpcId:
+        Fn::ImportValue: !Sub "${VPCStackName}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: 10.1.0.0/16
+      Tags:
+        - Key: Name
+          Value: Sample-Redis-SG
+  DocDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Sample-DocDB-SG
+      GroupDescription: The Security Group for docDB
+      VpcId:
+        Fn::ImportValue: !Sub "${VPCStackName}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 27017
+          ToPort: 27017
+          CidrIp: 10.1.0.0/16
+      Tags:
+        - Key: Name
+          Value: Sample-DocDB-SG
+Outputs:
+  SSHSecurityGroupId:
+    Description: The Security Group for ssh
+    Value: !Ref SSHSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SSHSecurityGroupId"
+  SqlDBSecurityGroupId:
+    Description: The Security Group for sql DB
+    Value: !Ref SqlDBSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SqlDBSecurityGroupId"
+  RedisSecurityGroupId:
+    Description: The Security Group for redis
+    Value: !Ref RedisSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-RedisSecurityGroupId"
+  DocDBSecurityGroupId:
+    Description: The Security Group for docDB
+    Value: !Ref DocDBSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-DocDBSecurityGroupId"

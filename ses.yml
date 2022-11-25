@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "AWS SES ConfigurationSet Sample Template"
+Description: "CF-Sample-SES"
 Parameters:
   ConfigSetName:
     Type: String
-    Default: TestSES
+    Default: SampleSES
   EventDestinationName:
     Type: String
     Default: CloudWatchEvent
